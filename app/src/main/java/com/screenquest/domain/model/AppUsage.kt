@@ -6,6 +6,7 @@ data class AppUsage(
     val totalMinutesUsed: Int,
     val launchCount: Int,
     val limitMinutes: Int = 0,       // 0 means no limit set
+    val dateEpochDay: Long = 0L,
     val isLimitExceeded: Boolean = false
 ) {
     val usageFraction: Float

@@ -14,8 +14,10 @@ import com.screenquest.domain.model.QuestDifficulty
 import com.screenquest.domain.model.QuestType
 import com.screenquest.domain.model.XPTable
 import com.screenquest.domain.repository.IGameRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -90,16 +92,18 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override suspend fun generateDailyQuestsIfMissing(avgDailyMinutes: Int) {
-        val today = LocalDate.now()
-        val existing = gameDao.getQuestsForDay(today.toEpochDay())
-        if (existing.isNotEmpty()) return
+        withContext(Dispatchers.IO) {
+            val today = LocalDate.now()
+            val existing = gameDao.getQuestsForDay(today.toEpochDay())
+            if (existing.isNotEmpty()) return@withContext
 
-        val profile = gameDao.getProfile() ?: return
-        QuestEngine.generateDailyQuests(
-            avgDailyUsageMinutes = avgDailyMinutes,
-            currentStreak = profile.currentStreak,
-            today = today
-        ).forEach { gameDao.insertQuest(it.toEntity()) }
+            val profile = gameDao.getProfile() ?: return@withContext
+            QuestEngine.generateDailyQuests(
+                avgDailyUsageMinutes = avgDailyMinutes,
+                currentStreak = profile.currentStreak,
+                today = today
+            ).forEach { gameDao.insertQuest(it.toEntity()) }
+        }
     }
 
     override suspend fun completeQuest(questId: Long) {

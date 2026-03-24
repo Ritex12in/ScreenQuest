@@ -50,7 +50,14 @@ class UsageRepositoryImpl @Inject constructor(
         val from = LocalDate.now().minusDays(days.toLong())
         val to = LocalDate.now()
         val records = observeRangeUsage(from, to).first()
-        return records.sumOf { it.totalMinutesUsed } / days
+
+        if (records.isEmpty()) return 0
+
+        val dailyTotals = records
+            .groupBy { it.dateEpochDay }
+            .map { (_, appsForDay) -> appsForDay.sumOf { it.totalMinutesUsed } }
+
+        return dailyTotals.sum() / dailyTotals.size
     }
 
     override fun observeTotalMinutesToday(): Flow<Int> {
@@ -112,6 +119,7 @@ class UsageRepositoryImpl @Inject constructor(
         packageName = packageName,
         appName = appName,
         totalMinutesUsed = totalMinutesUsed,
-        launchCount = launchCount
+        launchCount = launchCount,
+        dateEpochDay = dateEpochDay
     )
 }
