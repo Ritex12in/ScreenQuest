@@ -8,6 +8,7 @@ import com.screenquest.domain.model.AppUsage
 import com.screenquest.domain.repository.IUsageRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.ZoneId
@@ -39,6 +40,17 @@ class UsageRepositoryImpl @Inject constructor(
     override fun observeRangeUsage(from: LocalDate, to: LocalDate): Flow<List<AppUsage>> {
         return usageDao.getRecordsForRange(from.toEpochDay(), to.toEpochDay())
             .map { records -> records.map { it.toAppUsage() } }
+    }
+
+    override suspend fun getTotalMinutesToday(): Int {
+        return observeTotalMinutesToday().first()
+    }
+
+    override suspend fun getAverageDailyMinutes(days: Int): Int {
+        val from = LocalDate.now().minusDays(days.toLong())
+        val to = LocalDate.now()
+        val records = observeRangeUsage(from, to).first()
+        return records.sumOf { it.totalMinutesUsed } / days
     }
 
     override fun observeTotalMinutesToday(): Flow<Int> {

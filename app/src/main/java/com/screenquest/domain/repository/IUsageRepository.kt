@@ -11,4 +11,6 @@ interface IUsageRepository {
     fun observeTodayUsage(): Flow<List<AppUsage>>
     fun observeTotalMinutesToday(): Flow<Int>
     fun observeRangeUsage(from: LocalDate, to: LocalDate): Flow<List<AppUsage>>
+    suspend fun getTotalMinutesToday(): Int
+    suspend fun getAverageDailyMinutes(days: Int): Int
 }
