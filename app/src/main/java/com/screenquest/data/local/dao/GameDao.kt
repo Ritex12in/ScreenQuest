@@ -46,7 +46,10 @@ interface GameDao {
     suspend fun updateQuest(quest: QuestEntity)
 
     @Query("SELECT * FROM quests WHERE assignedDateEpochDay = :epochDay")
-    fun getQuestsForDay(epochDay: Long): Flow<List<QuestEntity>>
+    fun getQuestsForDay(epochDay: Long): List<QuestEntity>
+
+    @Query("SELECT * FROM quests WHERE id = :questId")
+    suspend fun getQuestById(questId: Long): QuestEntity?
 
     @Query("SELECT * FROM quests WHERE isCompleted = 0 ORDER BY assignedDateEpochDay DESC")
     fun getActiveQuests(): Flow<List<QuestEntity>>
@@ -56,4 +59,5 @@ interface GameDao {
 
     @Query("UPDATE quests SET isCompleted = 1, completedAtEpochDay = :epochDay WHERE id = :questId")
     suspend fun completeQuest(questId: Long, epochDay: Long)
+
 }
